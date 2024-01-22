@@ -7,10 +7,19 @@ import SignUp from './Pages/SignUp';
 import AddCourse from './Components/AddCourse';
 import Courses from './Components/Courses';
 import Course from './Components/Course';
+import React from 'react';
+import {
+  RecoilRoot,
+  atom,
+  selector,
+  useRecoilState,
+  useRecoilValue,
+} from 'recoil';
 
 function App() {
   return (
     <div className="App" style={{backgroundColor:"#eeeeee"}}>
+      <RecoilRoot>
       <AppBar />
       <BrowserRouter>
         <Routes>
@@ -21,6 +30,7 @@ function App() {
           <Route path='/courses/:courseId' element={<Course />} />
         </Routes>
       </BrowserRouter>
+      </RecoilRoot>
     </div>
   );
 }

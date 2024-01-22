@@ -3,10 +3,17 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import {
+  atom,
+  useRecoilState,
+  useRecoilValue,
+  useSetRecoilState,
+} from "recoil";
 
 const Course = () => {
   let { courseId } = useParams();
-  const [courses, setCourses] = useState([]);
+
+  const setCourses = useSetRecoilState(coursesState);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,19 +33,19 @@ const Course = () => {
       })
       .catch((error) => {
         console.error("Error fetching courses:", error);
-        setLoading(false); 
+        setLoading(false);
       });
   }, []);
 
-  let course = null;
-  if (!loading) {
-    for (let i = 0; i < courses.length; i++) {
-      if (courses[i].id == courseId) {
-        course = courses[i];
-        console.log("Course",course);
-      }
-    }
-  }
+  // let course = null;
+  // if (!loading) {
+  //   for (let i = 0; i < courses.length; i++) {
+  //     if (courses[i].id == courseId) {
+  //       course = courses[i];
+  //       console.log("Course", course);
+  //     }
+  //   }
+  // }
 
   if (loading) {
     return <div>Loading...</div>;
@@ -47,9 +54,9 @@ const Course = () => {
   return (
     <div>
       {courseId}
-      {JSON.stringify(course)}
-      <CourseCard course={course} />
-      <UpdateCard course={course} setCourses={setCourses} courses={courses} />
+     
+      <CourseCard courseId={courseId} />
+      <UpdateCard courseId={courseId} />
     </div>
   );
 };
@@ -58,10 +65,11 @@ function UpdateCard(props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [imageLink, setImageLink] = useState("");
-  const course = props.course;
+
   // props.setCourse()
+  const [courses, setCourses] = useRecoilState(coursesState);
   return (
-    <div 
+    <div
       style={{
         backgroundColor: "#eeeeee",
         display: "flex",
@@ -111,55 +119,52 @@ function UpdateCard(props) {
             style={{ marginBottom: "10px" }}
           />
           <Button
-  size={"large"}
-  variant="contained"
-  onClick={() => {
-    if (!course) {
-      // Handle the case where course is null, maybe show an error message
-      return;
-    }
+            size={"large"}
+            variant="contained"
+            onClick={() => {
+            
 
-    fetch("http://localhost:3000/admin/courses/" + course.id, {
-      method: "PUT",
-      body: JSON.stringify({
-        title: title,
-        description: description,
-        price: "455",
-        imgLink: imageLink,
-        published: "true",
-      }),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        alert("Course updated successfully");
-        let updatedCourses = [];
-        for (let i = 0; i < props.courses.length; i++) {
-          if (props.courses[i].id === course.id) {
-            updatedCourses.push({
-              id: course.id,
-              title: title,
-              description: description,
-              price: "455",
-              imgLink: imageLink,
-              published: "true",
-            });
-          } else {
-            updatedCourses.push(props.courses[i]);
-          }
-        }
-        props.setCourses(updatedCourses);
-      })
-      .catch((error) => {
-        console.error("Error updating course:", error);
-      });
-  }}
->
-  Update Course
-</Button> 
+              fetch("http://localhost:3000/admin/courses/" + props.courseId, {
+                method: "PUT",
+                body: JSON.stringify({
+                  title: title,
+                  description: description,
+                  price: "455",
+                  imgLink: imageLink,
+                  published: "true",
+                }),
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: "Bearer " + localStorage.getItem("token"),
+                },
+              })
+                .then((res) => res.json())
+                .then((data) => {
+                  alert("Course updated successfully");
+                  let updatedCourses = [];
+                  for (let i = 0; i < props.courses.length; i++) {
+                    if (courses[i].id === props.courseId) {
+                      updatedCourses.push({
+                        id: props.courseId,
+                        title: title,
+                        description: description,
+                        price: "455",
+                        imgLink: imageLink,
+                        published: "true",
+                      });
+                    } else {
+                      updatedCourses.push(courses[i]);
+                    }
+                  }
+                  setCourses(updatedCourses);
+                })
+                .catch((error) => {
+                  console.error("Error updating course:", error);
+                });
+            }}
+          >
+            Update Course
+          </Button>
         </div>
       </Card>
     </div>
@@ -167,7 +172,15 @@ function UpdateCard(props) {
 }
 
 function CourseCard(props) {
-  const course=props.course;
+  const courses = useRecoilValue(coursesState);
+
+  let course = null;
+  for (let i = 0; i < courses.length; i++) {
+    if (courses[i].id == props.courseId) {
+      course = courses[i];
+    }
+  }
+
   if (!course) {
     return <div>No course data available.</div>; // or any other appropriate message or UI
   }
@@ -180,20 +193,20 @@ function CourseCard(props) {
         minHeight: 200,
       }}
     >
-      
       <Typography textAlign={"center"} variant="h5">
         {course.title}
       </Typography>
       <Typography textAlign={"center"} variant="subtitle1">
         {course.description}
       </Typography>
-      <img
-        src={course.imgLink}
-        alt="Course Cover"
-        style={{ width: 300 }}
-      />
+      <img src={course.imgLink} alt="Course Cover" style={{ width: 300 }} />
     </Card>
   );
 }
 
 export default Course;
+
+const coursesState = atom({
+  key: "coursesState",
+  default: "",
+});
