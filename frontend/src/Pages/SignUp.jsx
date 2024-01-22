@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import Typography from "@mui/material/Typography";
 
 const SignUp = () => {
+  const [email,setEmail]=useState("");
+  const [password,setPassword]=useState("");
   return (
     <div
       style={{
@@ -28,24 +30,49 @@ const SignUp = () => {
           }}
         >
           <TextField
+            onChange={(e)=>{
+              setEmail(e.target.value);
+            }}
             fullWidth={true}
-            id="outlined-basic"
             label="Email"
             variant="outlined"
             style={{ marginBottom: "10px" }}
           />
           <TextField
+            onChange={(e)=>{
+              setPassword(e.target.value);
+            }}
             fullWidth={true}
-            id="outlined-basic"
             label="Password"
             variant="outlined"
             style={{ marginBottom: "10px" }}
           />
-           <Button size={"large"} variant="contained">
-          SignUP
-        </Button>
+          <Button 
+          size={"large"}
+          variant="contained"
+          onClick={()=>{
+            fetch("http://localhost:3000/admin/signup",{
+                method:"POST",
+                body:JSON.stringify({
+                    username:email,
+                    password:password
+                }),
+                headers:{
+                  "Content-Type": "application/json",
+                }
+            })
+            .then((res)=>{
+              return res.json();
+            })
+            .then((data)=>{
+              localStorage.setItem("token",data.token);
+              window.location="/";
+              console.log(data);
+            })
+          }}>
+            SignUP
+          </Button>
         </div>
-        
       </Card>
     </div>
   );
